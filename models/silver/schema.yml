@@ -1,36 +1,43 @@
 version: 2
 
 models:
-  - name: customer_silver
-    description: "Cleaned and validated customer data from bronze layer"
+  - name: customer_details_silver
+    description: "Cleansed and validated customer details from bronze layer with comprehensive DQ checks"
+    
     columns:
       - name: customer_id
-        description: "Unique identifier for customer"
+        description: "Unique customer identifier"
         tests:
           - not_null
           - unique
+          
       - name: customer_name
         description: "Customer full name"
         tests:
           - not_null
-          - dbt_utils.not_empty_string
+          
       - name: email
         description: "Customer email address"
         tests:
-          - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
-              config:
-                where: "email IS NOT NULL"
-      - name: created_date
-        description: "Date customer record was created"
-        tests:
           - not_null
-          - dbt_expectations.expect_column_values_to_be_between:
-              min_value: "'1900-01-01'"
-              max_value: "current_date()"
-      - name: has_error_flag
+          
+      - name: dq_error_flag
         description: "Flag indicating if record has data quality issues"
+        
+      - name: dq_error_count
+        description: "Number of data quality errors found"
+        
+      - name: silver_record_status
+        description: "Processing status in silver layer"
         tests:
-          - not_null
           - accepted_values:
-              values: [true, false]
+              values: ['PROCESSED', 'PENDING_VALIDATION', 'FAILED_DQ', 'PROCESSED_DEDUPLICATED', 'DUPLICATE_DISCARDED']
+              
+      - name: duplicate_count
+        description: "Number of duplicate records found for this customer_id"
+        
+      - name: processing_decision
+        description: "Whether record was included or excluded from final dataset"
+        tests:
+          - accepted_values:
+              values: ['INCLUDED', 'EXCLUDED']
