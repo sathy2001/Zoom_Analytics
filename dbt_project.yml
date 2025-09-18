@@ -35,8 +35,27 @@ clean-targets:         # directories to be removed by `dbt clean`
 # continue to be built as views. These settings can be overridden in the individual model files
 # using the `{{ config(...) }}` macro.
 
-models:
+#models:
   my_new_project:
     # Applies to all files under models/example/
     example:
       +materialized: table
+
+models:
+  zoom_customer_analytics:
+    silver:
+      +materialized: table
+      +tags: ["silver"]
+    audit:
+      +materialized: table
+      +tags: ["audit"]
+    quarantine:
+      +materialized: incremental
+      +tags: ["quarantine"]
+
+tests:
+  +store_failures: true
+  +severity: warn
+
+vars:
+  pipeline_run_id: "{{ run_started_at.strftime('%Y%m%d_%H%M%S') }}"
