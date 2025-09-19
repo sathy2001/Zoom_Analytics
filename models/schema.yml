@@ -2,20 +2,44 @@
 version: 2
 
 models:
-    - name: my_first_dbt_model
-      description: "A starter dbt model"
-      columns:
-          - name: id
-            description: "The primary key for this table"
-            tests:
-                - unique
-                - not_null
+  - name: customer_details_silver
+    description: "Cleansed and validated customer details from bronze layer with comprehensive DQ checks"
+    
+    columns:
+      - name: customer_id
+        description: "Unique customer identifier"
+        tests:
+          - not_null
+          - unique
+          
+      - name: customer_name
+        description: "Customer full name"
+        tests:
+          - not_null
+          
+      - name: email
+        description: "Customer email address"
+        tests:
+          - not_null
+          
+      - name: dq_error_flag
+        description: "Flag indicating if record has data quality issues"
+        
+      - name: dq_error_count
+        description: "Number of data quality errors found"
+        
+      - name: silver_record_status
+        description: "Processing status in silver layer"
+        tests:
+          - accepted_values:
+              values: ['PROCESSED', 'PENDING_VALIDATION', 'FAILED_DQ', 'PROCESSED_DEDUPLICATED', 'DUPLICATE_DISCARDED']
+              
+      - name: duplicate_count
+        description: "Number of duplicate records found for this customer_id"
+        
+      - name: processing_decision
+        description: "Whether record was included or excluded from final dataset"
+        tests:
+          - accepted_values:
+              values: ['INCLUDED', 'EXCLUDED']
 
-    - name: my_second_dbt_model
-      description: "A starter dbt model"
-      columns:
-          - name: id
-            description: "The primary key for this table"
-            tests:
-                - unique
-                - not_null
