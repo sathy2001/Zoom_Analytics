@@ -13,7 +13,7 @@
 
 WITH source_data AS (
     SELECT *
-    FROM {{ ref('customer_details_bronze') }}
+    FROM {{ ref('customer_details_brz') }}
     {% if is_incremental() %}
         WHERE extraction_timestamp > (SELECT MAX(extraction_timestamp) FROM {{ this }})
     {% endif %}

@@ -19,10 +19,10 @@ seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
-#target-path: "target"  # directory which will store compiled SQL files
-#clean-targets:         # directories to be removed by `dbt clean`
-#  - "target"
-#  - "dbt_packages"
+target-path: "target"  # directory which will store compiled SQL files
+clean-targets:         # directories to be removed by `dbt clean`
+  - "target"
+  - "dbt_packages"
 
 
 # Configuring models
@@ -37,8 +37,8 @@ snapshot-paths: ["snapshots"]
 
 
 models:
-  zoom_customer_analytics:
-    silver:
+  silver:
+    customer_details_silver:
       +materialized: table
       +tags: ["silver"]
     audit:

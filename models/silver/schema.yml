@@ -1,43 +1,59 @@
 version: 2
 
+sources:
+  - name: BRONZE
+    database: ZOOM
+    schema: bronze
+    tables:
+      - name: customer_details_brz
+
+  - name: silver
+    database: ZOOM
+    schema: SILVER
+    tables:
+      - name: customer_details_silver
+
 models:
   - name: customer_details_silver
     description: "Cleansed and validated customer details from bronze layer with comprehensive DQ checks"
-    
+
     columns:
       - name: customer_id
         description: "Unique customer identifier"
         tests:
           - not_null
           - unique
-          
+
       - name: customer_name
         description: "Customer full name"
         tests:
           - not_null
-          
+
       - name: email
         description: "Customer email address"
         tests:
           - not_null
-          
+
       - name: dq_error_flag
         description: "Flag indicating if record has data quality issues"
-        
+
       - name: dq_error_count
         description: "Number of data quality errors found"
-        
+
       - name: silver_record_status
         description: "Processing status in silver layer"
         tests:
           - accepted_values:
-              values: ['PROCESSED', 'PENDING_VALIDATION', 'FAILED_DQ', 'PROCESSED_DEDUPLICATED', 'DUPLICATE_DISCARDED']
-              
+              arguments:     # ✅ required in dbt v1.8+
+                values: ['PROCESSED', 'PENDING_VALIDATION', 'FAILED_DQ', 'PROCESSED_DEDUPLICATED', 'DUPLICATE_DISCARDED']
+
       - name: duplicate_count
         description: "Number of duplicate records found for this customer_id"
-        
+
       - name: processing_decision
         description: "Whether record was included or excluded from final dataset"
         tests:
           - accepted_values:
-              values: ['INCLUDED', 'EXCLUDED']
+              arguments:     # ✅ required in dbt v1.8+
+                values: ['INCLUDED', 'EXCLUDED']
+
