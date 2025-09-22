@@ -52,7 +52,7 @@
 # on-run-end:
 #   - "{{ log('Bronze to Silver transformation completed successfully!', info=True) }}"
 
-name: 'zoom_analytics_pipeline'
+name: 'zoom_customer_analytics'
 version: '1.0.0'
 config-version: 2
 
@@ -71,7 +71,7 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  zoom_analytics_pipeline:
+  zoom_customer_analytics:
     bronze:
       +materialized: table
     silver:
