@@ -18,7 +18,7 @@ WITH bronze_data AS (
         -- Add source metadata for audit purposes
         CURRENT_TIMESTAMP() AS extraction_timestamp,
         '{{ run_started_at }}' AS dbt_run_timestamp
-    FROM {{ ref('brz_orders') }}
+    FROM {{ source('brz_orders', 'silver_orders') }}
     {% if is_incremental() %}
         -- Only process new or updated records in incremental runs
         WHERE order_date >= (SELECT COALESCE(MAX(order_date), '1900-01-01') FROM {{ this }})
