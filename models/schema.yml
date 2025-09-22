@@ -1,45 +1,176 @@
-
 version: 2
 
 models:
-  - name: customer_details_silver
-    description: "Cleansed and validated customer details from bronze layer with comprehensive DQ checks"
-    
+  - name: silver_orders
+    description: "Cleaned and validated orders data from bronze layer with comprehensive data quality checks"
     columns:
-      - name: customer_id
-        description: "Unique customer identifier"
+      - name: order_id
+        description: "Unique identifier for each order"
         tests:
-          - not_null
           - unique
-          
-      - name: customer_name
-        description: "Customer full name"
+          - not_null
+        data_type: number
+        
+      - name: customer_id
+        description: "Reference to the customer who placed the order"
         tests:
           - not_null
-          
-      - name: email
-        description: "Customer email address"
+        data_type: number
+        
+      - name: product_name
+        description: "Standardized product name (uppercase, trimmed)"
         tests:
           - not_null
-          
-      - name: dq_error_flag
-        description: "Flag indicating if record has data quality issues"
+        data_type: varchar(255)
         
-      - name: dq_error_count
-        description: "Number of data quality errors found"
+      - name: quantity
+        description: "Number of items ordered (must be positive)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+        data_type: number
         
-      - name: silver_record_status
-        description: "Processing status in silver layer"
+      - name: price
+        description: "Unit price of the product (non-negative, max 1M)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1000000
+        data_type: number(10,2)
+        
+      - name: order_date
+        description: "Date when the order was placed (not future, not before 2020)"
+        tests:
+          - not_null
+        data_type: date
+        
+      - name: total_amount
+        description: "Calculated total amount (quantity * price)"
+        tests:
+          - not_null
+        data_type: number(12,2)
+        
+      - name: data_quality_status
+        description: "Status of data quality validation (should be 'VALID' for all records)"
         tests:
           - accepted_values:
-              values: ['PROCESSED', 'PENDING_VALIDATION', 'FAILED_DQ', 'PROCESSED_DEDUPLICATED', 'DUPLICATE_DISCARDED']
-              
-      - name: duplicate_count
-        description: "Number of duplicate records found for this customer_id"
+              values: ['VALID']
+        data_type: varchar(50)
         
-      - name: processing_decision
-        description: "Whether record was included or excluded from final dataset"
+      - name: has_data_quality_issues
+        description: "Boolean flag indicating data quality issues (should be FALSE for all records)"
         tests:
           - accepted_values:
-              values: ['INCLUDED', 'EXCLUDED']
+              values: [false]
+        data_type: boolean
+        
+      - name: extraction_timestamp
+        description: "Timestamp when data was extracted from source"
+        data_type: timestamp
+        
+      - name: dbt_run_timestamp
+        description: "Timestamp when DBT transformation started"
+        data_type: timestamp
+        
+      - name: processed_timestamp
+        description: "Timestamp when record was processed in silver layer"
+        data_type: timestamp
+        
+      - name: pipeline_version
+        description: "Version of the data pipeline used for processing"
+        data_type: varchar(10)
 
+  - name: silver_orders_errors
+    description: "Records that failed data quality checks with error details"
+    columns:
+      - name: order_id
+        description: "Order identifier (may be null if that's the error)"
+        data_type: number
+        
+      - name: customer_id
+        description: "Customer identifier (may be null if that's the error)"
+        data_type: number
+        
+      - name: product_name
+        description: "Product name (may be null/empty if that's the error)"
+        data_type: varchar(255)
+        
+      - name: quantity
+        description: "Quantity (may be null/invalid if that's the error)"
+        data_type: number
+        
+      - name: price
+        description: "Price (may be null/invalid if that's the error)"
+        data_type: number(10,2)
+        
+      - name: order_date
+        description: "Order date (may be null/invalid if that's the error)"
+        data_type: date
+        
+      - name: error_type
+        description: "Type of data quality error encountered"
+        tests:
+          - not_null
+          - accepted_values:
+              values: 
+                - 'ORDER_ID_NULL'
+                - 'CUSTOMER_ID_NULL'
+                - 'QUANTITY_NULL'
+                - 'PRICE_NULL'
+                - 'ORDER_DATE_NULL'
+                - 'PRODUCT_NAME_NULL_OR_EMPTY'
+                - 'INVALID_QUANTITY'
+                - 'NEGATIVE_PRICE'
+                - 'PRICE_TOO_HIGH'
+                - 'FUTURE_ORDER_DATE'
+                - 'ORDER_DATE_TOO_OLD'
+        data_type: varchar(50)
+        
+      - name: extraction_timestamp
+        description: "Timestamp when data was extracted from source"
+        data_type: timestamp
+        
+      - name: dbt_run_timestamp
+        description: "Timestamp when DBT transformation started"
+        data_type: timestamp
+        
+      - name: error_logged_timestamp
+        description: "Timestamp when error was logged"
+        data_type: timestamp
+        
+      - name: pipeline_version
+        description: "Version of the data pipeline used for processing"
+        data_type: varchar(10)
+
+sources:
+  - name: bronze
+    description: "Bronze layer containing raw, unprocessed data"
+    tables:
+      - name: brz_orders
+        description: "Raw orders data from source systems"
+        columns:
+          - name: order_id
+            description: "Unique identifier for the order"
+            data_type: number
+            
+          - name: customer_id
+            description: "Reference to customer placing the order"
+            data_type: number
+            
+          - name: product_name
+            description: "Name of the product"
+            data_type: varchar(255)
+            
+          - name: quantity
+            description: "Number of items ordered"
+            data_type: number
+            
+          - name: price
+            description: "Price of the product (2 decimals for currency)"
+            data_type: number(10,2)
+            
+          - name: order_date
+            description: "Date when the order was placed"
+            data_type: date
