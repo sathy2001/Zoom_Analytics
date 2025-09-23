@@ -1,3 +1,45 @@
+name: 'zoom_customer_analytics'
+version: '1.0.0'
+config-version: 2
+
+# Profile (make sure this matches your profiles.yml file)
+profile: 'zoom_customer_analytics'
+
+# File locations
+model-paths: ["models"]
+analysis-paths: ["analyses"]   # standardized
+test-paths: ["tests"]
+seed-paths: ["seeds"]          # standardized
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+# Build outputs
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Model configurations
+models:
+  zoom_customer_analytics:
+    bronze:
+      +materialized: table
+      +pre-hook: 
+      - "{{ audit_log_start() }}"
+      +post-hook: 
+      - "{{ audit_log_end() }}"
+    silver:
+      +materialized: table
+      +pre-hook:
+        - "{{ pre_audit_log() }}"
+      +post-hook:
+        - "{{ post_audit_log() }}"
+
+# Variables
+vars:
+  source_system: 'raw'
+  max_data_age_days: 365
+  dq_score_threshold: 0.8
 
 # # Name your project! Project names should contain only lowercase characters
 # # and underscores. A good package name should reflect your organization's
@@ -92,45 +134,45 @@
 
 
 
-name: 'zoom_customer_analytics'
-version: '1.0.0'
-config-version: 2
+# name: 'zoom_customer_analytics'
+# version: '1.0.0'
+# config-version: 2
 
-# Profile (make sure this matches your profiles.yml file)
-profile: 'zoom_customer_analytics'
+# # Profile (make sure this matches your profiles.yml file)
+# profile: 'zoom_customer_analytics'
 
-# File locations
-model-paths: ["models"]
-analysis-paths: ["analyses"]   # standardized
-test-paths: ["tests"]
-seed-paths: ["seeds"]          # standardized
-macro-paths: ["macros"]
-snapshot-paths: ["snapshots"]
+# # File locations
+# model-paths: ["models"]
+# analysis-paths: ["analyses"]   # standardized
+# test-paths: ["tests"]
+# seed-paths: ["seeds"]          # standardized
+# macro-paths: ["macros"]
+# snapshot-paths: ["snapshots"]
 
-# Build outputs
-target-path: "target"
-clean-targets:
-  - "target"
-  - "dbt_packages"
+# # Build outputs
+# target-path: "target"
+# clean-targets:
+#   - "target"
+#   - "dbt_packages"
 
-# Model configurations
-models:
-  zoom_customer_analytics:
-    bronze:
-      +materialized: table
-      +pre-hook: 
-      - "{{ audit_log_start() }}"
-      +post-hook: 
-      - "{{ audit_log_end() }}"
-    silver:
-      +materialized: table
-      +pre-hook:
-        - "{{ pre_audit_log() }}"
-      +post-hook:
-        - "{{ post_audit_log() }}"
+# # Model configurations
+# models:
+#   zoom_customer_analytics:
+#     bronze:
+#       +materialized: table
+#       +pre-hook: 
+#       - "{{ audit_log_start() }}"
+#       +post-hook: 
+#       - "{{ audit_log_end() }}"
+#     silver:
+#       +materialized: table
+#       +pre-hook:
+#         - "{{ pre_audit_log() }}"
+#       +post-hook:
+#         - "{{ post_audit_log() }}"
 
-# Variables
-vars:
-  source_system: 'raw'
-  max_data_age_days: 365
-  dq_score_threshold: 0.8
+# # Variables
+# vars:
+#   source_system: 'raw'
+#   max_data_age_days: 365
+#   dq_score_threshold: 0.8
