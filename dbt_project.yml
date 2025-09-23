@@ -118,8 +118,10 @@ models:
   zoom_customer_analytics:
     bronze:
       +materialized: table
-      +pre-hook: "{{ audit_log_start() }}"
-      +post-hook: "{{ audit_log_end() }}"
+      +pre-hook: 
+      - "{{ audit_log_start() }}"
+      +post-hook: 
+      - "{{ audit_log_end() }}"
     silver:
       +materialized: table
       +pre-hook:
