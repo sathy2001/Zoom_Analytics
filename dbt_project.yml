@@ -29,6 +29,7 @@ models:
       +post-hook: 
       - "{{ audit_log_end() }}"
     silver:
+      +schema: 'SILVER'
       +materialized: table
       +pre-hook:
         - "{{ pre_audit_log() }}"
